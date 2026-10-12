@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>關於開發者 & App 介紹</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent-color: #0d6efd;
+            --coffee-color: #FFDD00;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            text-align: left;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .coffee-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--coffee-color);
+            color: #000000;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .coffee-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- App 圖示 (可換成你自己的圖片連結) -->
+        <img src="https://via.placeholder.com/80" alt="App Icon" class="app-icon">
+        
+        <!-- App 名稱與標語 -->
+        <h1>你的 App 名稱</h1>
+        <p class="tagline">一句簡短吸引人的 App 功能介紹</p>
+
+        <!-- 創作理念 / 關於作者 -->
+        <div class="section">
+            <h2>關於作者與創作理念</h2>
+            <p>你好！我是這個 App 的獨立開發者。</p>
+            <p>建立這個 App 的初衷，是希望能解決 [某個生活或工作上的痛點]。這是我利用業餘時間獨自開發與維護的小作品。</p>
+            <p>如果你覺得這個 App 對你有幫助，歡迎請我喝一杯咖啡，這將會是我持續維護與更新最大的動力！</p>
+            
+            <!-- Buy Me a Coffee 按鈕 (記得將 href 換成你自己的 Buy Me a Coffee 網址) -->
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="https://www.buymeacoffee.com/你的帳號" target="_blank" class="coffee-btn">
+                    ☕ Buy me a coffee
+                </a>
+            </div>
+        </div>
+
+        <!-- 頁尾 -->
+        <div class="footer">
+            <p>© 2026 Your Name / App Name. All rights reserved.</p>
+        </div>
+    </div>
+
+</body>
+</html>
