@@ -33,8 +33,8 @@
             overflow: hidden;
         }
 
-        /* ================= 圖二：手機版流光 App Icon 樣式 ================= */
-        .app-icon-squircle {
+        /* ================= 圖一 ➔ 圖二：絲滑上色與背景浮現容器 ================= */
+        .app-icon-container {
             width: 74px;
             height: 74px;
             border-radius: 18px;
@@ -46,9 +46,8 @@
             flex-shrink: 0;
         }
 
-        /* 深色圓角背景層（支援升到頂部後才絲滑浮現） */
-        .app-icon-squircle::before {
-            content: "";
+        /* 圖二的深色圓角背景（初始隱藏，升到頂部才絲滑浮現） */
+        .squircle-bg {
             position: absolute;
             inset: 0;
             border-radius: 18px;
@@ -56,64 +55,46 @@
             box-shadow: 
                 0 12px 28px rgba(22, 19, 28, 0.28),
                 inset 0 1px 1.5px rgba(255, 255, 255, 0.22);
-            z-index: 0;
+            opacity: 0;
+            transform: scale(0.84);
             transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
                         transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
         }
 
-        .app-icon-squircle svg {
+        .app-icon-container svg {
             width: 100%;
             height: 100%;
             overflow: visible;
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
 
-        /* 開場分裂與上升期間：僅顯示黑線罐子，隱藏深色背景與流光 */
-        #splash-icon2 {
-            opacity: 0;
-        }
-
-        #splash-icon2::before {
-            opacity: 0;
-            transform: scale(0.86);
-        }
-
-        #splash-icon2 .jar-ink-layer {
+        /* 圖一黑線層 vs 圖二流光上色層 */
+        .jar-layer-black {
             opacity: 1;
-            transition: opacity 0.65s ease;
+            transition: opacity 0.6s ease;
         }
 
-        #splash-icon2 .jar-holo-layer {
+        .jar-layer-holo {
             opacity: 0;
-            filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6))
-                    drop-shadow(0 0 8px rgba(195, 230, 255, 0.35));
+            filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.65))
+                    drop-shadow(0 0 8px rgba(195, 230, 255, 0.38));
             transition: opacity 0.65s ease;
         }
 
-        /* 升到頂部後觸發：絲滑上色 + 浮現深色背景成為完整 Icon */
-        #splash-icon2.colorize-active::before {
+        /* 當升到頂部觸發 .colorized 時，絲滑加上背景並將線條上色 */
+        .app-icon-container.colorized .squircle-bg {
             opacity: 1;
             transform: scale(1);
         }
 
-        #splash-icon2.colorize-active .jar-ink-layer {
+        .app-icon-container.colorized .jar-layer-black {
             opacity: 0;
         }
 
-        #splash-icon2.colorize-active .jar-holo-layer {
+        .app-icon-container.colorized .jar-layer-holo {
             opacity: 1;
-        }
-
-        /* 目標 Header 上的最終 Icon 預設完整顯示 */
-        #target-brand-lockup .app-icon-squircle::before {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        #target-brand-lockup .jar-holo-layer {
-            filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6))
-                    drop-shadow(0 0 8px rgba(195, 230, 255, 0.35));
         }
 
         /* ================= 開場全螢幕動畫舞台 ================= */
@@ -138,7 +119,7 @@
             display: none;
         }
 
-        /* 動畫核心定位容器（負責帶動文字與黑線罐子一起向上升起貼合） */
+        /* 動畫核心定位容器（負責帶動 YourStory 與黑線罐子一起升上頂部） */
         #anim-stage {
             position: relative;
             display: flex;
@@ -161,7 +142,7 @@
             overflow: visible;
         }
 
-        /* 最終分裂並排的品牌組合 (YourStory + 罐子) */
+        /* 分裂並排的品牌組合 (YourStory + 罐子) */
         #split-lockup {
             display: flex;
             align-items: center;
@@ -182,6 +163,14 @@
 
         #splash-text {
             opacity: 0;
+        }
+
+        #splash-icon2 {
+            opacity: 0;
+        }
+
+        #splash-icon2.visible {
+            opacity: 1;
         }
 
         /* ================= 主頁面內容容器 ================= */
@@ -375,42 +364,38 @@
     <div id="splash-overlay">
         <div id="anim-stage">
             
-            <!-- 60fps 連續線條變形層 -->
+            <!-- 60fps 連續線條變形畫布 -->
             <svg id="morph-svg-layer" viewBox="-360 -140 720 280">
                 <defs>
-                    <!-- ===== 一體成型、頭尾100%融合無懸空線條的原圖故事罐路徑 ===== -->
+                    <!-- ===== 緊密貼合版故事罐路徑 (消除外露線頭，重現原圖右下角筆刷內微縫隙) ===== -->
                     <!-- 1. 瓶蓋 -->
-                    <path id="ref-jar-lid" d="M -37 -67 L 37 -67 C 46 -67, 48 -63, 48 -56 C 48 -49, 46 -45, 37 -45 L -37 -45 C -46 -45, -48 -49, -48 -56 C -48 -63, -46 -67, -37 -67 Z" />
+                    <path id="ref-jar-lid" d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 36 -45 L -36 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" />
                     
-                    <!-- 2. 瓶身主粗線 (右下角僅微幅內收，讓飛白細線緊貼瓶身不脫落) -->
-                    <path id="ref-jar-body" d="M -39 -44 C -40 -31, -63 -23, -64 4 C -65 20, -65 42, -59 58 C -53 72, -38 76, -12 76 C 14 76, 33 74, 46 65 C 56 58, 61 44, 63 24 C 64 12, 64 4, 63 -4 C 61 -24, 40 -31, 39 -44" />
+                    <!-- 2. 瓶身主粗線 (右下角微幅內收 2px，與外緣細線緊密包夾出自然微小的飛白縫隙) -->
+                    <path id="ref-jar-body" d="M -38 -44 C -39 -30, -62 -22, -62 5 C -62 24, -62 42, -57 57 C -52 70, -37 76, -8 76 C 18 76, 35 73.5, 46 66 C 55.5 59.5, 59.5 47, 61 29 C 62 15, 62 10, 62 4 C 62 -22, 39 -30, 38 -44" />
                     
-                    <!-- 3. 【右下角一體成型飛白】起點(66.8, 20)與終點(10, 79.8)完全埋入主瓶身粗線內，僅在轉角處形成緊密的細微月牙留白，絕無掉出來的懸空感 -->
-                    <path id="ref-jar-bristle1" d="M 66.8 20 C 67.2 42, 63.5 60, 55.2 69.2 C 47.0 77.5, 31.5 80.2, 10.0 79.8" />
-                    
-                    <!-- 4. 【右下角內層極細筆觸過渡】同樣頭尾完全收進主線內 -->
-                    <path id="ref-jar-bristle2" d="M 65.5 30 C 64.5 47, 59.5 60, 50.5 68.5 C 43.0 74.5, 30.0 77.5, 16.0 77.5" />
+                    <!-- 3. 右下角貼合飛白外緣 (起點 61,20 與終點 4,76 完全埋入主粗線內部，無外露線頭，僅在轉角處留出 1.5px 微縫) -->
+                    <path id="ref-jar-bristle" d="M 61 20 C 64.5 38, 63.2 57, 53.5 68.2 C 43.5 76.8, 25 77.5, 4 76" />
 
-                    <!-- 5. 中央圓環 -->
+                    <!-- 4. 中央圓環 -->
                     <path id="ref-jar-circle" d="M 0 -18 C 18 -18, 32 -4, 32 14 C 32 32, 18 46, 0 46 C -18 46, -32 32, -32 14 C -32 -4, -18 -18, 0 -18 Z" />
 
-                    <!-- 6. 圓環內左上反光弧線 -->
-                    <path id="ref-jar-arc" d="M -17 14 C -16.5 3.5, -8.5 -3.5, 1.5 -3.5" />
+                    <!-- 5. 圓環內左上反光弧線 -->
+                    <path id="ref-jar-arc" d="M -17.5 14 C -16.8 3.5, -8.5 -3.5, 1.5 -3.5" />
 
                     <!-- ===== 無限符號 ♾️ 左右迴圈路徑 ===== -->
                     <path id="ref-inf-left" d="M 0 0 C -16 -32, -68 -32, -68 0 C -68 32, -16 32, 0 0 Z" />
                     <path id="ref-inf-right" d="M 0 0 C 16 -32, 68 -32, 68 0 C 68 32, 16 32, 0 0 Z" />
 
                     <!-- ===== 左圈化為 YourStory 的橫向書寫流線軌跡 ===== -->
-                    <path id="ref-text-wave1" d="M -85 4 C -55 -18, -25 18, 0 -12 C 28 16, 58 -16, 85 2" />
+                    <path id="ref-text-wave" d="M -85 4 C -55 -18, -25 18, 0 -12 C 28 16, 58 -16, 85 2" />
                 </defs>
 
-                <!-- 實際參與旋轉與變形的 6 道畫筆路徑 -->
+                <!-- 實際參與旋轉與變形的畫筆路徑 -->
                 <g id="morph-strokes-group">
                     <path id="m-lid" fill="none" stroke="#1e1c24" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round" />
                     <path id="m-body" fill="none" stroke="#1e1c24" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path id="m-bristle1" fill="none" stroke="#1e1c24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-                    <path id="m-bristle2" fill="none" stroke="#1e1c24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path id="m-bristle" fill="none" stroke="#1e1c24" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
                     <path id="m-circle" fill="none" stroke="#1e1c24" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round" />
                     <path id="m-arc" fill="none" stroke="#1e1c24" stroke-width="7.8" stroke-linecap="round" stroke-linejoin="round" />
 
@@ -423,11 +408,396 @@
                 </g>
             </svg>
 
-            <!-- 分裂後的實體元素 (YourStory + 罐子：上升時為純黑線罐子，到達頂部後絲滑上色並浮現背景) -->
+            <!-- 分裂後的實體元素 (YourStory + 罐子：先以黑線版升上頂部，抵達後才絲滑上色並浮現深色背景) -->
             <div id="split-lockup">
                 <span id="splash-text" class="brand-title-text">YourStory</span>
-                <div id="splash-icon2" class="app-icon-squircle">
+                <div id="splash-icon2" class="app-icon-container">
+                    <div class="squircle-bg"></div>
                     <svg viewBox="-90 -90 180 185">
                         <defs>
                             <linearGradient id="holo-grad-splash" gradientUnits="userSpaceOnUse" x1="-65" y1="-65" x2="65" y2="80">
                                 <stop offset="0%" stop-color="#ffc8d8" />
+                                <stop offset="25%" stop-color="#fff6b0" />
+                                <stop offset="50%" stop-color="#b5ffe9" />
+                                <stop offset="75%" stop-color="#e4d0ff" />
+                                <stop offset="100%" stop-color="#ffffff" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 上升過程中的圖一黑線層 -->
+                        <g class="jar-layer-black" stroke="#1e1c24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 36 -45 L -36 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" stroke-width="11.5" />
+                            <path d="M -38 -44 C -39 -30, -62 -22, -62 5 C -62 24, -62 42, -57 57 C -52 70, -37 76, -8 76 C 18 76, 35 73.5, 46 66 C 55.5 59.5, 59.5 47, 61 29 C 62 15, 62 10, 62 4 C 62 -22, 39 -30, 38 -44" stroke-width="11.5" />
+                            <path d="M 61 20 C 64.5 38, 63.2 57, 53.5 68.2 C 43.5 76.8, 25 77.5, 4 76" stroke-width="2.6" />
+                            <path d="M 0 -18 C 18 -18, 32 -4, 32 14 C 32 32, 18 46, 0 46 C -18 46, -32 32, -32 14 C -32 -4, -18 -18, 0 -18 Z" stroke-width="11.5" />
+                            <path d="M -17.5 14 C -16.8 3.5, -8.5 -3.5, 1.5 -3.5" stroke-width="7.8" />
+                        </g>
+                        <!-- 抵達頂部後絲滑點亮的圖二流光層 -->
+                        <g class="jar-layer-holo" stroke="url(#holo-grad-splash)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 36 -45 L -36 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" stroke-width="11.5" />
+                            <path d="M -38 -44 C -39 -30, -62 -22, -62 5 C -62 24, -62 42, -57 57 C -52 70, -37 76, -8 76 C 18 76, 35 73.5, 46 66 C 55.5 59.5, 59.5 47, 61 29 C 62 15, 62 10, 62 4 C 62 -22, 39 -30, 38 -44" stroke-width="11.5" />
+                            <path d="M 61 20 C 64.5 38, 63.2 57, 53.5 68.2 C 43.5 76.8, 25 77.5, 4 76" stroke-width="2.6" />
+                            <path d="M 0 -18 C 18 -18, 32 -4, 32 14 C 32 32, 18 46, 0 46 C -18 46, -32 32, -32 14 C -32 -4, -18 -18, 0 -18 Z" stroke-width="11.5" />
+                            <path d="M -17.5 14 C -16.8 3.5, -8.5 -3.5, 1.5 -3.5" stroke-width="7.8" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= 網站三大核心區塊 ================= -->
+    <div class="main-wrapper">
+        
+        <!-- 1) 應用程式介紹 -->
+        <header>
+            <!-- 動畫終點絲滑貼合目標 -->
+            <div id="target-brand-lockup">
+                <span class="brand-title-text">YourStory</span>
+                <div class="app-icon-container colorized">
+                    <div class="squircle-bg"></div>
+                    <svg viewBox="-90 -90 180 185">
+                        <defs>
+                            <linearGradient id="holo-grad-header" gradientUnits="userSpaceOnUse" x1="-65" y1="-65" x2="65" y2="80">
+                                <stop offset="0%" stop-color="#ffc8d8" />
+                                <stop offset="25%" stop-color="#fff6b0" />
+                                <stop offset="50%" stop-color="#b5ffe9" />
+                                <stop offset="75%" stop-color="#e4d0ff" />
+                                <stop offset="100%" stop-color="#ffffff" />
+                            </linearGradient>
+                        </defs>
+                        <g class="jar-layer-holo" stroke="url(#holo-grad-header)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 36 -45 L -36 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" stroke-width="11.5" />
+                            <path d="M -38 -44 C -39 -30, -62 -22, -62 5 C -62 24, -62 42, -57 57 C -52 70, -37 76, -8 76 C 18 76, 35 73.5, 46 66 C 55.5 59.5, 59.5 47, 61 29 C 62 15, 62 10, 62 4 C 62 -22, 39 -30, 38 -44" stroke-width="11.5" />
+                            <path d="M 61 20 C 64.5 38, 63.2 57, 53.5 68.2 C 43.5 76.8, 25 77.5, 4 76" stroke-width="2.6" />
+                            <path d="M 0 -18 C 18 -18, 32 -4, 32 14 C 32 32, 18 46, 0 46 C -18 46, -32 32, -32 14 C -32 -4, -18 -18, 0 -18 Z" stroke-width="11.5" />
+                            <path d="M -17.5 14 C -16.8 3.5, -8.5 -3.5, 1.5 -3.5" stroke-width="7.8" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="fade-up-content delay-1">
+                <p class="hero-desc">為你的生活碎片留下歸屬，一個專注於安靜記錄與珍藏回憶的故事罐。</p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>極簡無干擾</h3>
+                        <p>去除所有多餘介面與喧囂，打開罐子，專注於記錄此刻的真實想法。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>私密與安全</h3>
+                        <p>你的故事完全屬於你自己，沒有社交壓力，數據安心留在身邊。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>溫暖的回顧</h3>
+                        <p>隨時搖一搖或打開時光瓶，重新遇見過去某些特別的日子與心情。</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2) 創作理念 -->
+        <section class="philosophy-section fade-up-content delay-2">
+            <span class="section-tag">Creation Philosophy</span>
+            <h2>創作理念：為什麼打造 YourStoryJar？</h2>
+            <p>在快節奏、充滿無數通知推播的日常裡，我們每天接收大量資訊，卻很容易忘記自己生活中那些微小卻珍貴的瞬間。</p>
+            <p>這是我利用業餘時間獨立設計與開發的作品。我希望打造一個如同「透明玻璃罐」般純粹的空間，讓你可以隨手把一段回憶、一句靈感或一個故事摺好放進罐子裡，不被演算法打擾，也不需要迎合任何人的目光。</p>
+            <p>每一個微小的日常，都值得被好好收藏。</p>
+        </section>
+
+        <!-- 3) 支持開發 (Buy me a coffee) -->
+        <section class="support-section fade-up-content delay-3">
+            <h2>支持獨立開發</h2>
+            <p>YourStoryJar 由個人獨立維護，堅持純粹的使用體驗。如果這個小罐子曾為你帶來一點平靜或溫暖，歡迎請我喝杯咖啡，支持我持續為它注入新功能。</p>
+            
+            <!-- 請記得將下方網址替換為你的 Buy Me a Coffee 連結 -->
+            <a href="https://www.buymeacoffee.com/你的帳號" target="_blank" class="coffee-button">
+                ☕ Buy me a coffee
+            </a>
+        </section>
+
+        <footer class="fade-up-content delay-3">
+            <p>© 2026 YourStoryJar. All rights reserved.</p>
+            <button class="replay-btn" onclick="playIntroAnimation()">↻ 重播開場動畫</button>
+        </footer>
+
+    </div>
+
+    <!-- ================= 動畫控制引擎 ================= -->
+    <script>
+        const NUM_PTS = 110;
+        let animFrameId = null;
+        let timeouts = [];
+
+        function samplePath(id, offsetX = 0, offsetY = 0, scale = 1) {
+            const el = document.getElementById(id);
+            const len = el.getTotalLength();
+            const pts = [];
+            for (let i = 0; i <= NUM_PTS; i++) {
+                const p = el.getPointAtLength((i / NUM_PTS) * len);
+                pts.push({
+                    x: p.x * scale + offsetX,
+                    y: p.y * scale + offsetY
+                });
+            }
+            return pts;
+        }
+
+        function morphPointsToPath(ptsA, ptsB, t, angleDeg = 0, pivotX = 0, pivotY = 0) {
+            const rad = (angleDeg * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+            let d = '';
+            for (let i = 0; i <= NUM_PTS; i++) {
+                const x = ptsA[i].x + (ptsB[i].x - ptsA[i].x) * t;
+                const y = ptsA[i].y + (ptsB[i].y - ptsA[i].y) * t;
+                const dx = x - pivotX;
+                const dy = y - pivotY;
+                const rx = pivotX + dx * cos - dy * sin;
+                const ry = pivotY + dx * sin + dy * cos;
+                d += (i === 0 ? `M ${rx.toFixed(2)} ${ry.toFixed(2)}` : ` L ${rx.toFixed(2)} ${ry.toFixed(2)}`);
+            }
+            return d;
+        }
+
+        function easeInOutCubic(x) {
+            return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+        }
+
+        function easeOutCubic(x) {
+            return 1 - Math.pow(1 - x, 3);
+        }
+
+        function clearTimers() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            timeouts.forEach(t => clearTimeout(t));
+            timeouts = [];
+        }
+
+        function playIntroAnimation() {
+            clearTimers();
+
+            const overlay = document.getElementById('splash-overlay');
+            const animStage = document.getElementById('anim-stage');
+            const strokesGroup = document.getElementById('morph-strokes-group');
+            const mLid = document.getElementById('m-lid');
+            const mBody = document.getElementById('m-body');
+            const mBristle = document.getElementById('m-bristle');
+            const mCircle = document.getElementById('m-circle');
+            const mArc = document.getElementById('m-arc');
+            const svgText = document.getElementById('svg-writing-text');
+            const splashText = document.getElementById('splash-text');
+            const splashIcon2 = document.getElementById('splash-icon2');
+            const targetLockup = document.getElementById('target-brand-lockup');
+
+            // 重置畫面狀態
+            window.scrollTo(0, 0);
+            document.body.classList.add('animating');
+            document.body.classList.remove('page-ready');
+            targetLockup.classList.remove('docked');
+
+            overlay.classList.remove('hidden', 'transparent-bg');
+            animStage.style.transition = 'none';
+            animStage.style.transform = 'translate(0px, 0px)';
+
+            strokesGroup.style.opacity = '1';
+            splashText.style.opacity = '0';
+            splashIcon2.classList.remove('visible', 'colorized');
+
+            [mLid, mBody, mBristle, mCircle, mArc].forEach(el => {
+                el.style.opacity = '1';
+            });
+
+            svgText.setAttribute('opacity', '0');
+            svgText.setAttribute('fill', 'rgba(29, 29, 31, 0)');
+            svgText.setAttribute('stroke-dashoffset', '320');
+
+            void overlay.offsetWidth;
+            animStage.style.transition = 'transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)';
+
+            // 量測分裂後「YourStory」與「右側罐子」相對於舞台中心的座標
+            const stageRect = animStage.getBoundingClientRect();
+            const textRect = splashText.getBoundingClientRect();
+            const iconRect = splashIcon2.getBoundingClientRect();
+
+            const centerX = stageRect.left + stageRect.width / 2;
+            const textOffsetX = (textRect.left + textRect.width / 2) - centerX;
+            const iconOffsetX = (iconRect.left + iconRect.width / 2) - centerX;
+
+            const computedFontSize = parseFloat(window.getComputedStyle(splashText).fontSize);
+            svgText.setAttribute('x', textOffsetX);
+            svgText.setAttribute('y', 0);
+            svgText.setAttribute('font-size', computedFontSize);
+
+            // 1. 初始圖一故事罐 (縮放 0.58 顯示於畫面中央)
+            const S_INIT = 0.58;
+            const jarLidPts     = samplePath('ref-jar-lid', 0, 0, S_INIT);
+            const jarBodyPts    = samplePath('ref-jar-body', 0, 0, S_INIT);
+            const jarBristlePts = samplePath('ref-jar-bristle', 0, 0, S_INIT);
+            const jarCirclePts  = samplePath('ref-jar-circle', 0, 0, S_INIT);
+            const jarArcPts     = samplePath('ref-jar-arc', 0, 0, S_INIT);
+
+            // 2. 無限符號 ♾️ 左右迴圈點陣列
+            const infLeftPts  = samplePath('ref-inf-left', 0, 0, 0.95);
+            const infRightPts = samplePath('ref-inf-right', 0, 0, 0.95);
+
+            // 3. 分裂後終點：左圈展開成文字書寫波紋，右圈變回右側黑線故事罐
+            const textWavePts = samplePath('ref-text-wave', textOffsetX, 0, 1.0);
+
+            const S_FINAL = 0.31; // 對應 74px 容器內部的罐子尺寸
+            const finalLidPts     = samplePath('ref-jar-lid', iconOffsetX, 0, S_FINAL);
+            const finalBodyPts    = samplePath('ref-jar-body', iconOffsetX, 0, S_FINAL);
+            const finalBristlePts = samplePath('ref-jar-bristle', iconOffsetX, 0, S_FINAL);
+            const finalCirclePts  = samplePath('ref-jar-circle', iconOffsetX, 0, S_FINAL);
+            const finalArcPts     = samplePath('ref-jar-arc', iconOffsetX, 0, S_FINAL);
+
+            const startTime = performance.now();
+
+            // 時間軸設定 (毫秒)
+            const T_FADE_IN = 300;  // 0.00s - 0.30s: 圖一清晰浮現
+            const T_SPIN_1  = 1650; // 0.30s - 1.65s: 圖一轉一圈 (前 50% 保持原貌不變形，後 50% 流暢變形為 ♾️)
+            const T_SPLIT   = 2550; // 1.65s - 2.55s: 無限符號不轉圈，直接分裂為 YourStory + 黑線罐子
+
+            function step(now) {
+                const elapsed = now - startTime;
+
+                if (elapsed <= T_FADE_IN) {
+                    // 階段 0：圖一淡入
+                    const p = Math.min(1, elapsed / T_FADE_IN);
+                    strokesGroup.style.opacity = String(p);
+
+                    mLid.setAttribute('d', morphPointsToPath(jarLidPts, jarLidPts, 0, 0));
+                    mBody.setAttribute('d', morphPointsToPath(jarBodyPts, jarBodyPts, 0, 0));
+                    mBristle.setAttribute('d', morphPointsToPath(jarBristlePts, jarBristlePts, 0, 0));
+                    mCircle.setAttribute('d', morphPointsToPath(jarCirclePts, jarCirclePts, 0, 0));
+                    mArc.setAttribute('d', morphPointsToPath(jarArcPts, jarArcPts, 0, 0));
+
+                    mLid.setAttribute('stroke-width', String(11.5 * S_INIT));
+                    mBody.setAttribute('stroke-width', String(11.5 * S_INIT));
+                    mBristle.setAttribute('stroke-width', String(2.6 * S_INIT));
+                    mCircle.setAttribute('stroke-width', String(11.5 * S_INIT));
+                    mArc.setAttribute('stroke-width', String(7.8 * S_INIT));
+                } 
+                else if (elapsed <= T_SPIN_1) {
+                    // 階段 1：圖一轉一圈 (0° -> 360°)
+                    const rawP = (elapsed - T_FADE_IN) / (T_SPIN_1 - T_FADE_IN);
+                    const spinProgress = easeInOutCubic(rawP);
+                    const angle = spinProgress * 360;
+
+                    // 【關鍵設定】前 50/100 (spinProgress <= 0.5) 完全保留原貌不變形
+                    // 轉了一半 (spinProgress > 0.5) 才開始在後半圈轉變為無限符號 ♾️
+                    let morphT = 0;
+                    if (spinProgress > 0.5) {
+                        const halfProgress = (spinProgress - 0.5) / 0.5;
+                        morphT = easeInOutCubic(Math.min(1, halfProgress));
+                    }
+
+                    mBody.setAttribute('d', morphPointsToPath(jarBodyPts, infLeftPts, morphT, angle));
+                    mLid.setAttribute('d', morphPointsToPath(jarLidPts, infLeftPts, morphT, angle));
+                    mBristle.setAttribute('d', morphPointsToPath(jarBristlePts, infLeftPts, morphT, angle));
+
+                    mCircle.setAttribute('d', morphPointsToPath(jarCirclePts, infRightPts, morphT, angle));
+                    mArc.setAttribute('d', morphPointsToPath(jarArcPts, infRightPts, morphT, angle));
+
+                    const baseW = 11.5 * S_INIT;
+                    const targetW = 6.2;
+                    mBody.setAttribute('stroke-width', String(baseW + (targetW - baseW) * morphT));
+                    mCircle.setAttribute('stroke-width', String(baseW + (targetW - baseW) * morphT));
+
+                    mLid.style.opacity = String(1 - morphT);
+                    mBristle.style.opacity = String(Math.max(0, 1 - morphT * 1.5));
+                    mArc.style.opacity = String(1 - morphT);
+                } 
+                else if (elapsed <= T_SPLIT) {
+                    // 階段 2：無限符號 ♾️ 不轉圈，直接分裂為「YourStory」與「黑線罐子」
+                    const rawP = (elapsed - T_SPIN_1) / (T_SPLIT - T_SPIN_1);
+                    const splitT = easeInOutCubic(rawP);
+
+                    // 1. 左圈拉開化為 YourStory 書寫流線與文字
+                    mBody.setAttribute('d', morphPointsToPath(infLeftPts, textWavePts, splitT, 0));
+                    mBody.style.opacity = String(Math.max(0, 1 - Math.pow(rawP, 1.5) * 1.25));
+
+                    svgText.setAttribute('opacity', '1');
+                    const dashOffset = 320 * (1 - easeOutCubic(Math.min(1, rawP * 1.2)));
+                    svgText.setAttribute('stroke-dashoffset', String(dashOffset));
+
+                    if (rawP > 0.4) {
+                        const fillAlpha = Math.min(1, (rawP - 0.4) / 0.5);
+                        svgText.setAttribute('fill', `rgba(29, 29, 31, ${fillAlpha})`);
+                    }
+
+                    // 2. 右圈向右移位並直接變形回「黑線故事罐」
+                    const rightPivotX = iconOffsetX * splitT;
+                    const rotAngle = splitT * 360;
+                    mCircle.setAttribute('d', morphPointsToPath(infRightPts, finalBodyPts, splitT, rotAngle, rightPivotX, 0));
+                    mLid.setAttribute('d', morphPointsToPath(infRightPts, finalLidPts, splitT, rotAngle, rightPivotX, 0));
+                    mArc.setAttribute('d', morphPointsToPath(infRightPts, finalArcPts, splitT, rotAngle, rightPivotX, 0));
+                    mBristle.setAttribute('d', morphPointsToPath(infRightPts, finalBristlePts, splitT, rotAngle, rightPivotX, 0));
+
+                    const startW = 6.2;
+                    const endW = 11.5 * S_FINAL;
+                    const currW = startW + (endW - startW) * splitT;
+                    mCircle.setAttribute('stroke-width', String(currW));
+                    mLid.setAttribute('stroke-width', String(currW));
+                    mArc.setAttribute('stroke-width', String(7.8 * S_FINAL));
+                    mBristle.setAttribute('stroke-width', String(2.6 * S_FINAL));
+
+                    mLid.style.opacity = String(splitT);
+                    mArc.style.opacity = String(splitT);
+                    mBristle.style.opacity = String(splitT);
+
+                    // 在分裂接近完成時，無縫交棒給實體的「黑線版罐子」(#splash-icon2 尚未上色)
+                    if (rawP > 0.75) {
+                        splashIcon2.classList.add('visible');
+                        const fadeOut = Math.max(0, 1 - (rawP - 0.75) / 0.25);
+                        mCircle.style.opacity = String(fadeOut);
+                        mLid.style.opacity = String(fadeOut);
+                        mArc.style.opacity = String(fadeOut);
+                        mBristle.style.opacity = String(fadeOut);
+                    }
+                }
+
+                if (elapsed < T_SPLIT) {
+                    animFrameId = requestAnimationFrame(step);
+                } else {
+                    // 分裂完成：此時是「YourStory」+「純黑線罐子」，準備一起往上升
+                    strokesGroup.style.opacity = '0';
+                    splashText.style.opacity = '1';
+                    splashIcon2.classList.add('visible');
+                }
+            }
+
+            animFrameId = requestAnimationFrame(step);
+
+            // 階段 3 (2.60s)：「YourStory」與「黑線罐子」一起向上絲滑升起
+            timeouts.push(setTimeout(() => {
+                const splitLockup = document.getElementById('split-lockup');
+                const currentRect = splitLockup.getBoundingClientRect();
+                const targetRect = targetLockup.getBoundingClientRect();
+
+                const deltaX = (targetRect.left + targetRect.width / 2) - (currentRect.left + currentRect.width / 2);
+                const deltaY = (targetRect.top + targetRect.height / 2) - (currentRect.top + currentRect.height / 2);
+
+                animStage.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                overlay.classList.add('transparent-bg');
+                document.body.classList.add('page-ready');
+            }, 2600));
+
+            // 階段 4 (3.35s)：升到頂部定位後，黑線罐子才絲滑上色 + 浮現深色圓角背景成為圖二 Icon！
+            timeouts.push(setTimeout(() => {
+                splashIcon2.classList.add('colorized');
+            }, 3350));
+
+            // 階段 5 (4.10s)：上色與背景動畫完成，無縫切換至頂部固定標題並開放頁面捲動
+            timeouts.push(setTimeout(() => {
+                targetLockup.classList.add('docked');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('animating');
+            }, 4100));
+        }
+
+        window.addEventListener('DOMContentLoaded', playIntroAnimation);
+    </script>
+</body>
+</html>
