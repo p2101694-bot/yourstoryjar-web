@@ -10,7 +10,7 @@
             --card-bg: #ffffff;
             --text-main: #1d1d1f;
             --text-sub: #86868b;
-            --accent: #0071e3;
+            --accent: #3a2d4c;
             --coffee-bg: #FFDD00;
             --border-light: rgba(0, 0, 0, 0.08);
         }
@@ -22,109 +22,284 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             line-height: 1.7;
             overflow-x: hidden;
         }
 
-        /* ================= 1. 極簡開場動畫 (Splash Screen) ================= */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #ffffff;
+        /* 動畫進行中鎖定捲動 */
+        body.animating {
+            overflow: hidden;
+        }
+
+        /* ================= 圖二：手機版流光 App Icon 樣式 ================= */
+        .app-icon-squircle {
+            width: 68px;
+            height: 68px;
+            border-radius: 17px;
+            background: radial-gradient(circle at 28% 25%, #4a3849 0%, #241e2c 58%, #16131c 100%);
+            box-shadow: 
+                0 10px 25px rgba(22, 19, 28, 0.25),
+                inset 0 1px 1px rgba(255, 255, 255, 0.18);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+            justify-content: center;
+            padding: 11px;
+            position: relative;
+            flex-shrink: 0;
         }
 
-        .splash-logo {
-            width: 56px;
-            height: 56px;
-            animation: dropboxPulse 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-        }
-
-        /* 簡約幾何線條圖示 (模擬極簡罐子/故事盒) */
-        .splash-logo svg {
+        .app-icon-squircle svg {
             width: 100%;
             height: 100%;
-            fill: none;
-            stroke: var(--text-main);
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.55))
+                    drop-shadow(0 0 10px rgba(200, 230, 255, 0.35));
         }
 
-        @keyframes dropboxPulse {
+        /* 如果你想直接用圖片檔，支援 img 滿版顯示 */
+        .custom-img-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
+
+        /* ================= 開場動畫舞台 (Splash Screen) ================= */
+        #splash-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: all;
+            transition: background-color 0.75s ease;
+        }
+
+        #splash-overlay.transparent-bg {
+            background-color: rgba(251, 251, 253, 0);
+            pointer-events: none;
+        }
+
+        #splash-overlay.hidden {
+            display: none;
+        }
+
+        /* 動畫核心容器（負責最後絲滑移位貼合至 Header） */
+        #anim-stage {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+            transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* 階段 1：圖一 極簡黑線罐子 */
+        #stage-jar1 {
+            position: absolute;
+            width: 86px;
+            height: 86px;
+            opacity: 0;
+            transform: scale(0.8) rotate(0deg);
+        }
+
+        #stage-jar1.enter {
+            animation: jarSpinOut 1.15s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes jarSpinOut {
             0% {
-                transform: scale(0.92);
-                opacity: 0.6;
+                opacity: 0;
+                transform: scale(0.75) rotate(-15deg);
             }
-            50% {
-                transform: scale(1.05);
+            28% {
                 opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+            75% {
+                opacity: 1;
+                transform: scale(0.95) rotate(290deg);
             }
             100% {
-                transform: scale(0.92);
-                opacity: 0.6;
+                opacity: 0;
+                transform: scale(0.45) rotate(360deg);
             }
         }
 
-        /* 網頁主容器 */
-        .main-wrapper {
+        /* 階段 2：無限符號 ♾️ */
+        #stage-infinity {
+            position: absolute;
+            width: 130px;
+            height: 65px;
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+            transform: scale(0.4) rotate(0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #stage-infinity.spin {
+            animation: infinitySpin 1.05s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+        }
+
+        @keyframes infinitySpin {
+            0% {
+                opacity: 0;
+                transform: scale(0.45) rotate(-40deg);
+            }
+            30% {
+                opacity: 1;
+                transform: scale(1.05) rotate(60deg);
+            }
+            82% {
+                opacity: 1;
+                transform: scale(1) rotate(360deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.08) rotate(360deg);
+            }
+        }
+
+        /* 階段 3：分裂的左右圈圈與最終品牌組合 */
+        #split-lockup {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            position: relative;
+        }
+
+        /* 分裂過渡用的左右圓環 */
+        .split-ring {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border: 4.5px solid #1e1b24;
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #ring-left.burst {
+            animation: ringLeftBurst 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        #ring-right.burst {
+            animation: ringRightBurst 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes ringLeftBurst {
+            0% {
+                opacity: 1;
+                transform: translateX(-22px) scale(0.95);
+            }
+            50% {
+                opacity: 0.7;
+                transform: translateX(-75px) scaleX(1.5) scaleY(0.85);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-95px) scaleX(2.1) scaleY(0.5);
+            }
+        }
+
+        @keyframes ringRightBurst {
+            0% {
+                opacity: 1;
+                transform: translateX(22px) scale(0.95);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateX(85px) scale(1.25);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(105px) scale(1.4);
+            }
+        }
+
+        /* 分裂後變成的「YourStory」與「圖二 Icon」 */
+        .brand-title-text {
+            font-size: clamp(2rem, 6vw, 2.65rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        #splash-text {
+            opacity: 0;
+            transform: translateX(55px) scale(0.6);
+            filter: blur(6px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #splash-icon2 {
+            opacity: 0;
+            transform: translateX(-55px) scale(0.5) rotate(-25deg);
+            filter: blur(6px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #split-lockup.separated #splash-text {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            filter: blur(0px);
+        }
+
+        #split-lockup.separated #splash-icon2 {
+            opacity: 1;
+            transform: translateX(0) scale(1) rotate(0deg);
+            filter: blur(0px);
+        }
+
+        /* ================= 主頁面內容容器 ================= */
+        .main-wrapper {
             max-width: 760px;
             margin: 0 auto;
-            padding: 60px 24px 100px;
+            padding: 72px 24px 100px;
         }
 
-        /* 當 Splash 結束時給予顯示狀態 */
-        body.loaded .main-wrapper {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ================= 2. 應用程式介紹 (Hero & Features) ================= */
         header {
             text-align: center;
             margin-bottom: 70px;
         }
 
-        .app-badge {
-            display: inline-block;
-            width: 88px;
-            height: 88px;
-            background: #ffffff;
-            border-radius: 22px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-            margin-bottom: 24px;
-            padding: 18px;
-            border: 1px solid var(--border-light);
+        /* 實際頁面頂部的品牌組合 (與動畫終點 1:1 貼合) */
+        #target-brand-lockup {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            opacity: 0; /* 貼合瞬間切換為 1 */
         }
 
-        .app-badge svg {
-            width: 100%;
-            height: 100%;
-            stroke: var(--accent);
-            stroke-width: 2;
-            fill: none;
+        #target-brand-lockup.docked {
+            opacity: 1;
         }
 
-        h1 {
-            font-size: 2.4rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 12px;
+        /* 頁面其餘區塊的淡入動畫 */
+        .fade-up-content {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        body.page-ready .fade-up-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.25s; }
+        .delay-3 { transition-delay: 0.4s; }
 
         .hero-desc {
             font-size: 1.15rem;
@@ -133,19 +308,26 @@
             margin: 0 auto;
         }
 
+        /* 1) 應用程式介紹卡片 */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
-            margin-top: 40px;
+            margin-top: 42px;
+            text-align: left;
         }
 
         .feature-card {
             background: var(--card-bg);
             padding: 28px 24px;
-            border-radius: 18px;
+            border-radius: 20px;
             border: 1px solid var(--border-light);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.025);
+            transition: transform 0.25s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
         }
 
         .feature-card h3 {
@@ -155,34 +337,34 @@
         }
 
         .feature-card p {
-            font-size: 0.92rem;
+            font-size: 0.93rem;
             color: var(--text-sub);
         }
 
-        /* ================= 3. 創作理念 (Philosophy) ================= */
+        /* 2) 創作理念區塊 */
         .philosophy-section {
-            margin: 80px 0;
-            padding: 40px 32px;
-            background: #ffffff;
-            border-radius: 20px;
+            margin: 64px 0;
+            padding: 42px 34px;
+            background: var(--card-bg);
+            border-radius: 24px;
             border: 1px solid var(--border-light);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.025);
         }
 
         .section-tag {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--accent);
-            margin-bottom: 12px;
+            letter-spacing: 0.12em;
+            color: #6b538c;
+            margin-bottom: 10px;
             display: block;
         }
 
         .philosophy-section h2 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            margin-bottom: 20px;
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin-bottom: 18px;
             letter-spacing: -0.01em;
         }
 
@@ -192,11 +374,15 @@
             margin-bottom: 16px;
         }
 
-        /* ================= 4. 支持開發 (Support / Buy me a coffee) ================= */
+        .philosophy-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 3) 支持開發區塊 */
         .support-section {
             text-align: center;
-            padding: 50px 30px;
-            background: linear-gradient(180deg, #ffffff 0%, #f4f4f7 100%);
+            padding: 52px 30px;
+            background: linear-gradient(180deg, #ffffff 0%, #f3f2f7 100%);
             border-radius: 24px;
             border: 1px solid var(--border-light);
         }
@@ -210,7 +396,7 @@
             color: var(--text-sub);
             max-width: 480px;
             margin: 0 auto 28px;
-            font-size: 0.95rem;
+            font-size: 0.96rem;
         }
 
         .coffee-button {
@@ -239,97 +425,219 @@
             font-size: 0.85rem;
             color: var(--text-sub);
         }
+
+        .replay-btn {
+            margin-top: 14px;
+            background: none;
+            border: 1px solid var(--border-light);
+            color: var(--text-sub);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .replay-btn:hover {
+            color: var(--text-main);
+            border-color: var(--text-sub);
+        }
     </style>
 </head>
-<body>
+<body class="animating">
 
-    <!-- 1. 極簡開場動畫 (1.2 秒後淡出) -->
-    <div id="splash-screen">
-        <div class="splash-logo">
-            <svg viewBox="0 0 24 24">
-                <rect x="4" y="5" width="16" height="15" rx="3"></rect>
-                <line x1="8" y1="2" x2="16" y2="2"></line>
-                <line x1="12" y1="9" x2="12" y2="15"></line>
-                <line x1="9" y1="12" x2="15" y2="12"></line>
-            </svg>
+    <!-- 共用 SVG 定義區 (流光漸層與你的故事罐圖示) -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <!-- 圖二專屬的全息流光漸層 -->
+            <linearGradient id="holo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffd1dc" />
+                <stop offset="25%" stop-color="#fff8b8" />
+                <stop offset="50%" stop-color="#b8ffe6" />
+                <stop offset="75%" stop-color="#e0c8ff" />
+                <stop offset="100%" stop-color="#ffffff" />
+            </linearGradient>
+
+            <!-- 1:1 還原你的故事罐圖形路徑 -->
+            <g id="story-jar-graphic">
+                <!-- 瓶蓋 -->
+                <rect x="24" y="13" width="52" height="14" rx="6" stroke-width="6.5" stroke-linejoin="round" fill="none" />
+                <!-- 瓶身 -->
+                <path d="M 30 27 C 30 35, 17 37, 17 53 L 17 75 C 17 87, 26 91, 50 91 C 74 91, 83 87, 83 75 L 83 53 C 83 37, 70 35, 70 27" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                <!-- 中央圓圈 -->
+                <circle cx="50" cy="59" r="17.5" stroke-width="6.5" fill="none" />
+                <!-- 圓圈內反光弧線 -->
+                <path d="M 41.5 58 A 9.5 9.5 0 0 1 50 49.5" stroke-width="5" stroke-linecap="round" fill="none" />
+            </g>
+        </defs>
+    </svg>
+
+    <!-- ================= 開場全螢幕動畫舞台 ================= -->
+    <div id="splash-overlay">
+        <div id="anim-stage">
+            
+            <!-- 階段 1：圖一 (黑線故事罐) -->
+            <div id="stage-jar1">
+                <svg viewBox="0 0 100 104" width="100%" height="100%" stroke="#1e1b24">
+                    <use href="#story-jar-graphic" />
+                </svg>
+            </div>
+
+            <!-- 階段 2：無限符號 ♾️ -->
+            <div id="stage-infinity">
+                <svg viewBox="0 0 120 60" width="100%" height="100%">
+                    <path d="M 60 30 C 45 10, 12 10, 12 30 C 12 50, 45 50, 60 30 C 75 10, 108 10, 108 30 C 108 50, 75 50, 60 30 Z" 
+                          fill="none" stroke="#1e1b24" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+
+            <!-- 階段 3 & 4：無限符號左右分裂 ➔ YourStory + 圖二 App Icon -->
+            <div id="split-lockup">
+                <div id="ring-left" class="split-ring"></div>
+                <div id="ring-right" class="split-ring"></div>
+
+                <span id="splash-text" class="brand-title-text">YourStory</span>
+                <div id="splash-icon2" class="app-icon-squircle">
+                    <svg viewBox="0 0 100 104">
+                        <use href="#story-jar-graphic" stroke="url(#holo-gradient)" />
+                    </svg>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- 主頁面內容 -->
+    <!-- ================= 網站三大核心區塊 ================= -->
     <div class="main-wrapper">
         
-        <!-- 應用程式介紹 -->
+        <!-- 1) 應用程式介紹 -->
         <header>
-            <div class="app-badge">
-                <svg viewBox="0 0 24 24">
-                    <rect x="4" y="5" width="16" height="15" rx="3"></rect>
-                    <line x1="8" y1="2" x2="16" y2="2"></line>
-                    <line x1="12" y1="9" x2="12" y2="15"></line>
-                    <line x1="9" y1="12" x2="15" y2="12"></line>
-                </svg>
+            <!-- 動畫終點貼合目標 -->
+            <div id="target-brand-lockup">
+                <span class="brand-title-text">YourStory</span>
+                <div class="app-icon-squircle">
+                    <svg viewBox="0 0 100 104">
+                        <use href="#story-jar-graphic" stroke="url(#holo-gradient)" />
+                    </svg>
+                </div>
             </div>
-            <h1>YourStoryJar</h1>
-            <p class="hero-desc">為你的生活碎片留下歸屬，一個專注於安靜記錄與反思的簡約容器。</p>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>極簡無干擾</h3>
-                    <p>去除所有多餘介面與喧囂，專注於記錄此刻的真實想法。</p>
-                </div>
-                <div class="feature-card">
-                    <h3>離線與安全</h3>
-                    <p>你的資料完全由你掌控，無需強制註冊，數據留在身邊。</p>
-                </div>
-                <div class="feature-card">
-                    <h3>溫暖的回顧</h3>
-                    <p>隨時打開時光瓶，重新遇見過去某些特別的日子與心情。</p>
+            <div class="fade-up-content delay-1">
+                <p class="hero-desc">為你的生活碎片留下歸屬，一個專注於安靜記錄與珍藏回憶的故事罐。</p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>極簡無干擾</h3>
+                        <p>去除所有多餘介面與喧囂，打開罐子，專注於記錄此刻的真實想法。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>私密與安全</h3>
+                        <p>你的故事完全屬於你自己，沒有社交壓力，數據安心留在身邊。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>溫暖的回顧</h3>
+                        <p>隨時搖一搖或打開時光瓶，重新遇見過去某些特別的日子與心情。</p>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- 創作理念 -->
-        <section class="philosophy-section">
-            <span class="section-tag">Philosophy</span>
-            <h2>為什麼打造這個 App？</h2>
-            <p>在快節奏、充滿通知推播的日常中，我們很容易忘記那些微小卻溫暖的瞬間。</p>
-            <p>這是我利用業餘時間，由個人獨立設計並打造的專案。我希望提供一個如同「透明玻璃罐」般的空間，讓你可以隨手放進一段回憶、一句話或一張照片，不需要被演算法綁架，也沒有按讚與社交壓力。</p>
-            <p>它很簡單，但也足夠純粹。</p>
+        <!-- 2) 創作理念 -->
+        <section class="philosophy-section fade-up-content delay-2">
+            <span class="section-tag">Creation Philosophy</span>
+            <h2>創作理念：為什麼打造 YourStoryJar？</h2>
+            <p>在快節奏、充滿無數通知推播的日常裡，我們每天接收大量資訊，卻很容易忘記自己生活中那些微小卻珍貴的瞬間。</p>
+            <p>這是我利用業餘時間獨立設計與開發的作品。我希望打造一個如同「透明玻璃罐」般純粹的空間，讓你可以隨手把一段回憶、一句靈感或一個故事摺好放進罐子裡，不被演算法打擾，也不需要迎合任何人的目光。</p>
+            <p>每一個微小的日常，都值得被好好收藏。</p>
         </section>
 
-        <!-- 支持開發 (Buy me a coffee) -->
-        <section class="support-section">
+        <!-- 3) 支持開發 (Buy me a coffee) -->
+        <section class="support-section fade-up-content delay-3">
             <h2>支持獨立開發</h2>
-            <p>這個 App 堅持無惱人廣告、無強制訂閱。如果它曾經為你帶來一點平靜或靈感，歡迎請我喝杯咖啡，支持它持續維護與更新。</p>
+            <p>YourStoryJar 由個人獨立維護，堅持純粹的使用體驗。如果這個小罐子曾為你帶來一點平靜或溫暖，歡迎請我喝杯咖啡，支持我持續為它注入新功能。</p>
             
-            <!-- 請記得替換為你的 Buy Me a Coffee 帳號連結 -->
+            <!-- 記得將下方網址換成你的 Buy Me a Coffee 連結 -->
             <a href="https://www.buymeacoffee.com/你的帳號" target="_blank" class="coffee-button">
                 ☕ Buy me a coffee
             </a>
         </section>
 
-        <footer>
-            <p>© 2026 YourStoryJar. 由獨立開發者用心打造。</p>
+        <footer class="fade-up-content delay-3">
+            <p>© 2026 YourStoryJar. All rights reserved.</p>
+            <button class="replay-btn" onclick="playIntroAnimation()">↻ 重播開場動畫</button>
         </footer>
 
     </div>
 
-    <!-- 開場動畫控制 JavaScript -->
+    <!-- ================= 動畫時間軸與絲滑貼合控制 ================= -->
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // 頁面載入後展示 1.2 秒開場動畫，隨後淡出
+        function playIntroAnimation() {
+            const overlay = document.getElementById('splash-overlay');
+            const animStage = document.getElementById('anim-stage');
+            const jar1 = document.getElementById('stage-jar1');
+            const infinity = document.getElementById('stage-infinity');
+            const splitLockup = document.getElementById('split-lockup');
+            const ringLeft = document.getElementById('ring-left');
+            const ringRight = document.getElementById('ring-right');
+            const targetLockup = document.getElementById('target-brand-lockup');
+
+            // 回到頂部並重置所有動畫狀態
+            window.scrollTo(0, 0);
+            document.body.classList.add('animating');
+            document.body.classList.remove('page-ready');
+            targetLockup.classList.remove('docked');
+
+            overlay.classList.remove('hidden', 'transparent-bg');
+            animStage.style.transition = 'none';
+            animStage.style.transform = 'translate(0px, 0px)';
+
+            jar1.classList.remove('enter');
+            infinity.classList.remove('spin');
+            splitLockup.classList.remove('separated');
+            ringLeft.classList.remove('burst');
+            ringRight.classList.remove('burst');
+
+            // 強制重繪以確保動畫重新觸發
+            void overlay.offsetWidth;
+            animStage.style.transition = 'transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)';
+
+            // Step 1 (0.0s): 圖一出現並旋轉一圈
+            jar1.classList.add('enter');
+
+            // Step 2 (0.95s): 銜接變成無限符號 ♾️ 再轉一圈
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                document.body.classList.add('loaded');
-                
-                // 動畫結束後完全隱藏 splash 元素
-                setTimeout(() => {
-                    splash.style.visibility = 'hidden';
-                }, 800);
-            }, 1200);
-        });
+                infinity.classList.add('spin');
+            }, 950);
+
+            // Step 3 (1.85s): 無限符號左右分裂 -> 左邊變成 YourStory，右邊變成圖二 Icon
+            setTimeout(() => {
+                ringLeft.classList.add('burst');
+                ringRight.classList.add('burst');
+                splitLockup.classList.add('separated');
+            }, 1850);
+
+            // Step 4 (2.75s): 計算與頁面 Header 的精準座標差，絲滑向上貼合
+            setTimeout(() => {
+                const stageRect = splitLockup.getBoundingClientRect();
+                const targetRect = targetLockup.getBoundingClientRect();
+
+                const deltaX = (targetRect.left + targetRect.width / 2) - (stageRect.left + stageRect.width / 2);
+                const deltaY = (targetRect.top + targetRect.height / 2) - (stageRect.top + stageRect.height / 2);
+
+                animStage.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                overlay.classList.add('transparent-bg');
+                document.body.classList.add('page-ready');
+            }, 2750);
+
+            // Step 5 (3.6s): 貼合完成，無縫切換為真實 DOM 並解除捲動鎖定
+            setTimeout(() => {
+                targetLockup.classList.add('docked');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('animating');
+            }, 3600);
+        }
+
+        window.addEventListener('DOMContentLoaded', playIntroAnimation);
     </script>
 </body>
 </html>
-
-
