@@ -46,7 +46,7 @@
             display: inline-flex;
             align-items: baseline;
             position: relative;
-            z-index: 1; /* 確保文字層在 Logo 下方，讓 Jar 從 Logo 背後滑出 */
+            z-index: 1; /* 文字層在 Logo 下方，讓 Jar 從 Logo 背後往左滑出 */
         }
 
         .brand-title-text {
@@ -390,47 +390,37 @@
             <!-- 60fps 連續線條變形畫布 -->
             <svg id="morph-svg-layer" viewBox="-370 -140 740 280">
                 <defs>
-                    <!-- 【關鍵修正】內部鏤空飛白遮罩：直接在粗線條內部刻出右下角月牙形飛白，外緣 100% 平滑不外露 -->
+                    <!-- 內部鏤空飛白遮罩：直接在粗線條內部刻出右下角月牙形飛白，外緣 100% 平滑不外露 -->
                     <mask id="brush-split-mask" maskUnits="userSpaceOnUse" x="-120" y="-120" width="240" height="240">
                         <rect x="-120" y="-120" width="240" height="240" fill="white" />
-                        <!-- 右下角筆觸內部的月牙形飛白鏤空縫隙 -->
                         <path d="M 62.5 22 C 63.5 46, 59 64.5, 45 72.5 C 34 77.5, 18 78.8, 2 78.2 C 18 76.8, 33 74.5, 43.2 69.2 C 55.8 61.5, 60.5 44, 62.5 22 Z" fill="black" />
-                        <!-- 內圓反光弧左下尾端的微小筆刷分叉鏤空 -->
                         <path d="M -18.5 16.5 L -16.2 11.5 L -15.2 16.8 Z" fill="black" />
                     </mask>
 
-                    <!-- 1. 單一連續罐子外輪廓 (瓶蓋+瓶頸+瓶身合一，供右圈分裂時變形為空心外框) -->
+                    <!-- 1. 單一連續罐子外輪廓 (瓶蓋+瓶頸+瓶身合一，供右圈分裂後直接變形為空心外框) -->
                     <path id="ref-jar-silhouette" d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 38 -45 C 39 -30, 62 -22, 62 5 C 62 24, 62 43, 56.5 58 C 51 71, 35 76.5, 0 76.5 C -35 76.5, -51 71, -56.5 58 C -62 43, -62 24, -62 5 C -62 -22, -39 -30, -38 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" />
 
-                    <!-- 2. 故事罐中央內圓環 (含瓶蓋橫線與內部反光弧，供開場第一圈轉變為右半無限圈) -->
+                    <!-- 2. 故事罐中央內圓環 -->
                     <path id="ref-jar-inner-ring" d="M 0 -18 C 18 -18, 32 -4, 32 14 C 32 32, 18 46, 0 46 C -18 46, -32 32, -32 14 C -32 -4, -18 -18, 0 -18 Z" />
 
-                    <!-- 3. 無限符號 ♾️ 左右迴圈路徑 -->
+                    <!-- 3. 無限符號 ♾️ 左右迴圈路徑 (維持原本的水滴迴圈形狀) -->
                     <path id="ref-inf-left" d="M 0 0 C -16 -32, -68 -32, -68 0 C -68 32, -16 32, 0 0 Z" />
                     <path id="ref-inf-right" d="M 0 0 C 16 -32, 68 -32, 68 0 C 68 32, 16 32, 0 0 Z" />
 
-                    <!-- 4. 【新增階段】無限符號先左右分裂開來的兩個獨立正圓圈 (○   ○) -->
-                    <path id="ref-sep-circle-left" d="M -24 0 C -24 -15.5, -36.5 -28, -52 -28 C -67.5 -28, -80 -15.5, -80 0 C -80 15.5, -67.5 28, -52 28 C -36.5 28, -24 15.5, -24 0 Z" />
-                    <path id="ref-sep-circle-right" d="M 24 0 C 24 -15.5, 36.5 -28, 52 -28 C 67.5 -28, 80 -15.5, 80 0 C 80 15.5, 67.5 28, 52 28 C 36.5 28, 24 15.5, 24 0 Z" />
-
-                    <!-- 5. 左圓化為 YourStory 的橫向書寫流線軌跡 -->
+                    <!-- 4. 左迴圈化為 YourStory 的橫向書寫流線軌跡 -->
                     <path id="ref-text-wave" d="M -85 4 C -55 -18, -25 18, 0 -12 C 28 16, 58 -16, 85 2" />
                 </defs>
 
                 <g id="morph-strokes-group">
                     <!-- 開場圖一的完整 100% 細節組 (前 50% 旋轉保持完整原貌) -->
                     <g id="intact-jar-group" mask="url(#brush-split-mask)" stroke="#1e1c24" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- 瓶蓋 -->
                         <path d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 36 -45 L -36 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" stroke-width="11.5" />
-                        <!-- 瓶身 (右下角內部由 mask 自然鏤空出飛白，無外露線條) -->
                         <path d="M -38 -44 C -39 -30, -62 -22, -62 5 C -62 24, -62 43, -56.5 58 C -51 71, -35 76.5, 0 76.5 C 35 76.5, 51 71, 56.5 58 C 62 43, 62 24, 62 5 C 62 -22, 39 -30, 38 -44" stroke-width="11.5" />
-                        <!-- 內圓 -->
                         <circle cx="0" cy="14" r="32" stroke-width="11.5" />
-                        <!-- 反光弧 -->
                         <path d="M -17.5 15 C -16.8 3.5, -8.5 -3.5, 1.5 -3.5" stroke-width="7.8" />
                     </g>
 
-                    <!-- 參與連續變形的兩條主畫筆 (左線 & 右線) -->
+                    <!-- 參與連續變形的兩條主畫筆 (左迴圈線 & 右迴圈線) -->
                     <path id="m-left" fill="none" stroke="#1e1c24" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round" opacity="0" />
                     <path id="m-right" fill="none" stroke="#1e1c24" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round" opacity="0" />
 
@@ -663,8 +653,6 @@
 
             const jarWidth = splashJarText.offsetWidth;
             const halfJar = jarWidth / 2;
-            // 將 YourStory 往右移 halfJar、Logo 往左移 halfJar，使兩者在「Jar 尚未滑出前」保持完美 16px 間距且整體居中
-            // 同時將「Jar」往右推移至 Logo 正中央後方藏好
             const hideJarOffsetX = (74 / 2) + 16; 
             splashText.style.transform = `translateX(${halfJar}px)`;
             splashIcon2.style.transform = `translateX(${-halfJar}px)`;
@@ -707,14 +695,16 @@
             const jarOuterInitPts = samplePath('ref-jar-silhouette', 0, 0, S_INIT);
             const jarInnerInitPts = samplePath('ref-jar-inner-ring', 0, 0, S_INIT);
 
+            // 無限符號 ♾️ 左右迴圈頂點 (在中心相交)
             const infLeftPts  = samplePath('ref-inf-left', 0, 0, 0.95);
             const infRightPts = samplePath('ref-inf-right', 0, 0, 0.95);
 
-            // 無限符號先左右分裂成的兩個獨立圓圈 (○   ○)
-            const sepCircleLeftPts  = samplePath('ref-sep-circle-left', 0, 0, 1.0);
-            const sepCircleRightPts = samplePath('ref-sep-circle-right', 0, 0, 1.0);
+            // 【關鍵調整】無限符號保持「當前的左右迴圈形狀」直接往兩邊分裂拉開 (不變成正圓形)
+            const SPLIT_GAP = 26; // 左右迴圈各自往外分裂拉開的距離
+            const splitLoopLeftPts  = samplePath('ref-inf-left', -SPLIT_GAP, 0, 0.95);
+            const splitLoopRightPts = samplePath('ref-inf-right', SPLIT_GAP, 0, 0.95);
 
-            // 分裂後的目標：左圓變為 YourStory 波紋，右圓變為「單一空心罐子外輪廓 (內部全空)」
+            // 分裂後的目標：左迴圈變為 YourStory 波紋，右迴圈變為「單一空心罐子外輪廓 (內部全空)」
             const textWavePts = samplePath('ref-text-wave', textOffsetX, 0, 1.0);
             const S_FINAL = 0.31;
             const finalEmptyJarPts = samplePath('ref-jar-silhouette', iconOffsetX, 0, S_FINAL);
@@ -724,9 +714,9 @@
             // ================= 動畫時間軸定義 (毫秒) =================
             const T_FADE_IN     = 280;  // 0.00s - 0.28s: 圖一清晰浮現
             const T_SPIN_HALF   = 820;  // 0.28s - 0.82s: 前 50% 旋轉 (0° -> 180°) 100% 保持原貌不變形
-            const T_SPIN_DONE   = 1180; // 0.82s - 1.18s: 後 50% 旋轉 (180° -> 360°) 速度加快 50% 轉變為無限符號 ♾️
-            const T_TWO_CIRCLES = 1640; // 1.18s - 1.64s: 無限符號 ♾️ 先左右分裂開來成為兩個獨立圓圈 (○   ○)
-            const T_MORPH_BRAND = 2360; // 1.64s - 2.36s: 兩個圓圈分別轉化為「YourStory」與「空心罐子外框」
+            const T_SPIN_DONE   = 1160; // 0.82s - 1.16s: 後 50% 旋轉 (180° -> 360°) 速度加快 50% 轉變為無限符號 ♾️
+            const T_SPLIT_LOOPS = 1480; // 1.16s - 1.48s: 無限符號 ♾️ 保持當前水滴迴圈形狀，直接從中間往左右兩邊分裂開來
+            const T_MORPH_BRAND = 2220; // 1.48s - 2.22s: 直接接續原本的轉變動畫 -> 左邊變 YourStory，右邊變空心罐子外框
 
             function step(now) {
                 const elapsed = now - startTime;
@@ -750,7 +740,6 @@
                     const p = easeOutCubic(rawP);
                     const angle = 180 + p * 180;
 
-                    // 加速 50% 變形曲線
                     const fastMorphT = easeInOutCubic(Math.min(1, rawP * 1.35));
 
                     intactJar.style.opacity = String(Math.max(0, 1 - rawP * 2.5));
@@ -765,24 +754,24 @@
                     mLeft.setAttribute('stroke-width', String(w));
                     mRight.setAttribute('stroke-width', String(w));
                 } 
-                else if (elapsed <= T_TWO_CIRCLES) {
-                    // 階段 2：【關鍵新增】無限符號 ♾️ 先左右分裂成兩個獨立圓圈 (○   ○)
+                else if (elapsed <= T_SPLIT_LOOPS) {
+                    // 階段 2：無限符號 ♾️ 保持當前的左右迴圈形狀，直接從中間往兩邊分裂開來
                     intactJar.style.opacity = '0';
-                    const rawP = (elapsed - T_SPIN_DONE) / (T_TWO_CIRCLES - T_SPIN_DONE);
-                    const splitCircleT = easeOutCubic(rawP);
+                    const rawP = (elapsed - T_SPIN_DONE) / (T_SPLIT_LOOPS - T_SPIN_DONE);
+                    const splitT = easeOutCubic(rawP);
 
                     mLeft.setAttribute('opacity', '1');
                     mRight.setAttribute('opacity', '1');
-                    mLeft.setAttribute('d', morphPointsToPath(infLeftPts, sepCircleLeftPts, splitCircleT, 0));
-                    mRight.setAttribute('d', morphPointsToPath(infRightPts, sepCircleRightPts, splitCircleT, 0));
+                    mLeft.setAttribute('d', morphPointsToPath(infLeftPts, splitLoopLeftPts, splitT, 0));
+                    mRight.setAttribute('d', morphPointsToPath(infRightPts, splitLoopRightPts, splitT, 0));
                 } 
                 else if (elapsed <= T_MORPH_BRAND) {
-                    // 階段 3：左右兩個圓圈繼續轉變 -> 左圓化為 YourStory，右圓化為「空心罐子外輪廓」
-                    const rawP = (elapsed - T_TWO_CIRCLES) / (T_MORPH_BRAND - T_TWO_CIRCLES);
+                    // 階段 3：從分裂開的左右迴圈，直接接原本的轉變動畫 (左變 YourStory，右變空心罐子輪廓)
+                    const rawP = (elapsed - T_SPLIT_LOOPS) / (T_MORPH_BRAND - T_SPLIT_LOOPS);
                     const morphT = easeInOutCubic(rawP);
 
-                    // 1. 左圓展開為 YourStory 文字
-                    mLeft.setAttribute('d', morphPointsToPath(sepCircleLeftPts, textWavePts, morphT, 0));
+                    // 1. 左迴圈展開為 YourStory 書寫波紋與文字
+                    mLeft.setAttribute('d', morphPointsToPath(splitLoopLeftPts, textWavePts, morphT, 0));
                     mLeft.setAttribute('opacity', String(Math.max(0, 1 - Math.pow(rawP, 1.4) * 1.3)));
 
                     svgText.setAttribute('opacity', '1');
@@ -794,8 +783,11 @@
                         svgText.setAttribute('fill', `rgba(29, 29, 31, ${fillAlpha})`);
                     }
 
-                    // 2. 右圓變形為「只有外型輪廓、裡面全空的罐子」
-                    mRight.setAttribute('d', morphPointsToPath(sepCircleRightPts, finalEmptyJarPts, morphT, 0));
+                    // 2. 右迴圈按照原本的旋轉變形方式，化為「只有外型輪廓、裡面全空的罐子」
+                    const currentCenterX = SPLIT_GAP + (iconOffsetX - SPLIT_GAP) * morphT;
+                    const rotAngle = morphT * 360;
+                    mRight.setAttribute('d', morphPointsToPath(splitLoopRightPts, finalEmptyJarPts, morphT, rotAngle, currentCenterX, 0));
+                    
                     const startW = 6.4;
                     const endW = 11.5 * S_FINAL;
                     mRight.setAttribute('stroke-width', String(startW + (endW - startW) * morphT));
@@ -819,7 +811,7 @@
 
             animFrameId = requestAnimationFrame(step);
 
-            // 階段 4 (2.40s)：往上升的同時，空心罐子同步絲滑上色 (.coloring)！
+            // 階段 4 (2.26s)：往上升的同時，空心罐子同步絲滑上色 (.coloring)
             timeouts.push(setTimeout(() => {
                 const splitLockup = document.getElementById('split-lockup');
                 const currentRect = splitLockup.getBoundingClientRect();
@@ -829,27 +821,26 @@
                 const deltaY = (targetRect.top + targetRect.height / 2) - (currentRect.top + currentRect.height / 2);
 
                 animStage.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                // 觸發上升途中同步上色
                 splashIcon2.classList.add('coloring');
                 overlay.classList.add('transparent-bg');
                 document.body.classList.add('page-ready');
-            }, 2400));
+            }, 2260));
 
-            // 階段 5 (3.20s)：升到頂部定位！深色背景與完整 Logo 出現，同時背後往左滑出「Jar」結合成「YourStoryJar」！
+            // 階段 5 (3.06s)：升到頂部定位！深色背景與完整 Logo 出現，同時背後往左滑出「Jar」結合成「YourStoryJar」
             timeouts.push(setTimeout(() => {
                 splashIcon2.classList.add('logo-complete');
                 splashText.style.transform = 'translateX(0px)';
                 splashIcon2.style.transform = 'translateX(0px)';
                 splashJarText.style.opacity = '1';
                 splashJarText.style.transform = 'translateX(0px) scale(1)';
-            }, 3200));
+            }, 3060));
 
-            // 階段 6 (4.00s)：完全貼合固定，解除捲動鎖定
+            // 階段 6 (3.85s)：完全貼合固定，解除捲動鎖定
             timeouts.push(setTimeout(() => {
                 targetLockup.classList.add('docked');
                 overlay.classList.add('hidden');
                 document.body.classList.remove('animating');
-            }, 4000));
+            }, 3850));
         }
 
         window.addEventListener('DOMContentLoaded', playIntroAnimation);
