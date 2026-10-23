@@ -397,13 +397,13 @@
                         <path d="M -18.5 16.5 L -16.2 11.5 L -15.2 16.8 Z" fill="black" />
                     </mask>
 
-                    <!-- 1. 單一連續罐子外輪廓 (瓶蓋+瓶頸+瓶身合一，供右圈分裂後直接變形為空心外框) -->
+                    <!-- 1. 單一連續罐子外輪廓 (瓶蓋+瓶頸+瓶身合一，供右圈分裂時同步變形為空心外框) -->
                     <path id="ref-jar-silhouette" d="M -36 -66 L 36 -66 C 45 -66, 47 -62, 47 -55.5 C 47 -49, 45 -45, 38 -45 C 39 -30, 62 -22, 62 5 C 62 24, 62 43, 56.5 58 C 51 71, 35 76.5, 0 76.5 C -35 76.5, -51 71, -56.5 58 C -62 43, -62 24, -62 5 C -62 -22, -39 -30, -38 -45 C -45 -45, -47 -49, -47 -55.5 C -47 -62, -45 -66, -36 -66 Z" />
 
                     <!-- 2. 故事罐中央內圓環 -->
                     <path id="ref-jar-inner-ring" d="M 0 -18 C 18 -18, 32 -4, 32 14 C 32 32, 18 46, 0 46 C -18 46, -32 32, -32 14 C -32 -4, -18 -18, 0 -18 Z" />
 
-                    <!-- 3. 無限符號 ♾️ 左右迴圈路徑 (維持原本的水滴迴圈形狀) -->
+                    <!-- 3. 無限符號 ♾️ 左右迴圈路徑 -->
                     <path id="ref-inf-left" d="M 0 0 C -16 -32, -68 -32, -68 0 C -68 32, -16 32, 0 0 Z" />
                     <path id="ref-inf-right" d="M 0 0 C 16 -32, 68 -32, 68 0 C 68 32, 16 32, 0 0 Z" />
 
@@ -581,18 +581,18 @@
             return pts;
         }
 
-        function morphPointsToPath(ptsA, ptsB, t, angleDeg = 0, pivotX = 0, pivotY = 0) {
+        // 支援「形狀變形 (morphT)」、「自身中心旋轉 (angleDeg)」與「水平移動分開 (translateX)」三者同步進行
+        function morphAndTranslatePath(ptsA, ptsB, morphT, angleDeg = 0, translateX = 0) {
             const rad = (angleDeg * Math.PI) / 180;
             const cos = Math.cos(rad);
             const sin = Math.sin(rad);
             let d = '';
             for (let i = 0; i <= NUM_PTS; i++) {
-                const x = ptsA[i].x + (ptsB[i].x - ptsA[i].x) * t;
-                const y = ptsA[i].y + (ptsB[i].y - ptsA[i].y) * t;
-                const dx = x - pivotX;
-                const dy = y - pivotY;
-                const rx = pivotX + dx * cos - dy * sin;
-                const ry = pivotY + dx * sin + dy * cos;
+                const x = ptsA[i].x + (ptsB[i].x - ptsA[i].x) * morphT;
+                const y = ptsA[i].y + (ptsB[i].y - ptsA[i].y) * morphT;
+                // 先繞自身局部中心 (0,0) 旋轉，再加上水平分離位移 translateX
+                const rx = (x * cos - y * sin) + translateX;
+                const ry = (x * sin + y * cos);
                 d += (i === 0 ? `M ${rx.toFixed(2)} ${ry.toFixed(2)}` : ` L ${rx.toFixed(2)} ${ry.toFixed(2)}`);
             }
             return d + ' Z';
@@ -676,7 +676,7 @@
             splashJarText.style.transition = 'transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
             splashIcon2.style.transition = 'transform 0.68s cubic-bezier(0.16, 1, 0.3, 1)';
 
-            // 2. 量測分裂時「YourStory」與「右側空心罐子」相對於舞台中心的座標
+            // 2. 量測分裂後「YourStory」與「右側空心罐子」相對於舞台中心的座標
             const stageRect = animStage.getBoundingClientRect();
             const textRect = splashText.getBoundingClientRect();
             const iconRect = splashIcon2.getBoundingClientRect();
@@ -695,19 +695,19 @@
             const jarOuterInitPts = samplePath('ref-jar-silhouette', 0, 0, S_INIT);
             const jarInnerInitPts = samplePath('ref-jar-inner-ring', 0, 0, S_INIT);
 
-            // 無限符號 ♾️ 左右迴圈頂點 (在中心相交)
+            // 無限符號 ♾️ 左右迴圈頂點 (在中心 0,0 相交)
             const infLeftPts  = samplePath('ref-inf-left', 0, 0, 0.95);
             const infRightPts = samplePath('ref-inf-right', 0, 0, 0.95);
 
-            // 【關鍵調整】無限符號保持「當前的左右迴圈形狀」直接往兩邊分裂拉開 (不變成正圓形)
-            const SPLIT_GAP = 26; // 左右迴圈各自往外分裂拉開的距離
-            const splitLoopLeftPts  = samplePath('ref-inf-left', -SPLIT_GAP, 0, 0.95);
-            const splitLoopRightPts = samplePath('ref-inf-right', SPLIT_GAP, 0, 0.95);
+            // 為了讓無限符號「在轉變的同時自然向左右分開」，將左右迴圈與目標形狀皆對齊至各自局部中心 (0,0)
+            // 左迴圈中心原本在 -32.3，右迴圈中心原本在 +32.3
+            const LOOP_CENTER_OFFSET = 32.3;
+            const infLeftLocalPts  = samplePath('ref-inf-left', LOOP_CENTER_OFFSET, 0, 0.95);
+            const infRightLocalPts = samplePath('ref-inf-right', -LOOP_CENTER_OFFSET, 0, 0.95);
 
-            // 分裂後的目標：左迴圈變為 YourStory 波紋，右迴圈變為「單一空心罐子外輪廓 (內部全空)」
-            const textWavePts = samplePath('ref-text-wave', textOffsetX, 0, 1.0);
             const S_FINAL = 0.31;
-            const finalEmptyJarPts = samplePath('ref-jar-silhouette', iconOffsetX, 0, S_FINAL);
+            const textWaveLocalPts      = samplePath('ref-text-wave', 0, 0, 1.0);
+            const finalEmptyJarLocalPts = samplePath('ref-jar-silhouette', 0, 0, S_FINAL);
 
             const startTime = performance.now();
 
@@ -715,8 +715,8 @@
             const T_FADE_IN     = 280;  // 0.00s - 0.28s: 圖一清晰浮現
             const T_SPIN_HALF   = 820;  // 0.28s - 0.82s: 前 50% 旋轉 (0° -> 180°) 100% 保持原貌不變形
             const T_SPIN_DONE   = 1160; // 0.82s - 1.16s: 後 50% 旋轉 (180° -> 360°) 速度加快 50% 轉變為無限符號 ♾️
-            const T_SPLIT_LOOPS = 1480; // 1.16s - 1.48s: 無限符號 ♾️ 保持當前水滴迴圈形狀，直接從中間往左右兩邊分裂開來
-            const T_MORPH_BRAND = 2220; // 1.48s - 2.22s: 直接接續原本的轉變動畫 -> 左邊變 YourStory，右邊變空心罐子外框
+            const T_HOLD_INF    = 1660; // 1.16s - 1.66s: 【新增】完整的無限符號 ♾️ 停留 0.5 秒 (500ms)
+            const T_MORPH_BRAND = 2480; // 1.66s - 2.48s: 【合併】在轉變為 YourStory 與空心罐子的「同時」往左右分開
 
             function step(now) {
                 const elapsed = now - startTime;
@@ -747,34 +747,36 @@
 
                     mLeft.setAttribute('opacity', '1');
                     mRight.setAttribute('opacity', '1');
-                    mLeft.setAttribute('d', morphPointsToPath(jarOuterInitPts, infLeftPts, fastMorphT, angle));
-                    mRight.setAttribute('d', morphPointsToPath(jarInnerInitPts, infRightPts, fastMorphT, angle));
+                    mLeft.setAttribute('d', morphAndTranslatePath(jarOuterInitPts, infLeftPts, fastMorphT, angle, 0));
+                    mRight.setAttribute('d', morphAndTranslatePath(jarInnerInitPts, infRightPts, fastMorphT, angle, 0));
 
                     const w = (11.5 * S_INIT) + (6.4 - 11.5 * S_INIT) * fastMorphT;
                     mLeft.setAttribute('stroke-width', String(w));
                     mRight.setAttribute('stroke-width', String(w));
                 } 
-                else if (elapsed <= T_SPLIT_LOOPS) {
-                    // 階段 2：無限符號 ♾️ 保持當前的左右迴圈形狀，直接從中間往兩邊分裂開來
+                else if (elapsed <= T_HOLD_INF) {
+                    // 階段 2：完整的無限符號 ♾️ 清晰停留 0.5 秒
                     intactJar.style.opacity = '0';
-                    const rawP = (elapsed - T_SPIN_DONE) / (T_SPLIT_LOOPS - T_SPIN_DONE);
-                    const splitT = easeOutCubic(rawP);
-
                     mLeft.setAttribute('opacity', '1');
                     mRight.setAttribute('opacity', '1');
-                    mLeft.setAttribute('d', morphPointsToPath(infLeftPts, splitLoopLeftPts, splitT, 0));
-                    mRight.setAttribute('d', morphPointsToPath(infRightPts, splitLoopRightPts, splitT, 0));
+                    mLeft.setAttribute('d', morphAndTranslatePath(infLeftPts, infLeftPts, 1, 0, 0));
+                    mRight.setAttribute('d', morphAndTranslatePath(infRightPts, infRightPts, 1, 0, 0));
+                    mLeft.setAttribute('stroke-width', '6.4');
+                    mRight.setAttribute('stroke-width', '6.4');
                 } 
                 else if (elapsed <= T_MORPH_BRAND) {
-                    // 階段 3：從分裂開的左右迴圈，直接接原本的轉變動畫 (左變 YourStory，右變空心罐子輪廓)
-                    const rawP = (elapsed - T_SPLIT_LOOPS) / (T_MORPH_BRAND - T_SPLIT_LOOPS);
-                    const morphT = easeInOutCubic(rawP);
+                    // 階段 3：無限符號「一邊往左右分開、一邊同步轉變」為 YourStory 與 空心罐子外框
+                    const rawP = (elapsed - T_HOLD_INF) / (T_MORPH_BRAND - T_HOLD_INF);
+                    const moveT  = easeOutCubic(rawP);      // 水平分離平滑曲線
+                    const morphT = easeInOutCubic(rawP);    // 線條形狀轉化曲線
 
-                    // 1. 左迴圈展開為 YourStory 書寫波紋與文字
-                    mLeft.setAttribute('d', morphPointsToPath(splitLoopLeftPts, textWavePts, morphT, 0));
-                    mLeft.setAttribute('opacity', String(Math.max(0, 1 - Math.pow(rawP, 1.4) * 1.3)));
+                    // 1. 左半圈：從 -32.3 往左移動到 textOffsetX 的同時，展開為 YourStory 書寫波紋與文字
+                    const currentLeftX = -LOOP_CENTER_OFFSET + (textOffsetX - (-LOOP_CENTER_OFFSET)) * moveT;
+                    mLeft.setAttribute('d', morphAndTranslatePath(infLeftLocalPts, textWaveLocalPts, morphT, 0, currentLeftX));
+                    mLeft.setAttribute('opacity', String(Math.max(0, 1 - Math.pow(rawP, 1.45) * 1.3)));
 
                     svgText.setAttribute('opacity', '1');
+                    svgText.setAttribute('x', currentLeftX);
                     const dashOffset = 320 * (1 - easeOutCubic(Math.min(1, rawP * 1.25)));
                     svgText.setAttribute('stroke-dashoffset', String(dashOffset));
 
@@ -783,10 +785,10 @@
                         svgText.setAttribute('fill', `rgba(29, 29, 31, ${fillAlpha})`);
                     }
 
-                    // 2. 右迴圈按照原本的旋轉變形方式，化為「只有外型輪廓、裡面全空的罐子」
-                    const currentCenterX = SPLIT_GAP + (iconOffsetX - SPLIT_GAP) * morphT;
+                    // 2. 右半圈：從 +32.3 往右移動到 iconOffsetX 的同時，一邊旋轉一邊直接變形為「空心罐子外框」
+                    const currentRightX = LOOP_CENTER_OFFSET + (iconOffsetX - LOOP_CENTER_OFFSET) * moveT;
                     const rotAngle = morphT * 360;
-                    mRight.setAttribute('d', morphPointsToPath(splitLoopRightPts, finalEmptyJarPts, morphT, rotAngle, currentCenterX, 0));
+                    mRight.setAttribute('d', morphAndTranslatePath(infRightLocalPts, finalEmptyJarLocalPts, morphT, rotAngle, currentRightX));
                     
                     const startW = 6.4;
                     const endW = 11.5 * S_FINAL;
@@ -802,7 +804,7 @@
                 if (elapsed < T_MORPH_BRAND) {
                     animFrameId = requestAnimationFrame(step);
                 } else {
-                    // 分裂完成：固定為「YourStory」+「空心黑線罐子外框」
+                    // 分裂與變形同步完成：固定為「YourStory」+「空心黑線罐子外框」
                     strokesGroup.style.opacity = '0';
                     splashText.style.opacity = '1';
                     splashIcon2.classList.add('visible');
@@ -811,7 +813,7 @@
 
             animFrameId = requestAnimationFrame(step);
 
-            // 階段 4 (2.26s)：往上升的同時，空心罐子同步絲滑上色 (.coloring)
+            // 階段 4 (2.52s)：往上升的同時，空心罐子同步絲滑上色 (.coloring)
             timeouts.push(setTimeout(() => {
                 const splitLockup = document.getElementById('split-lockup');
                 const currentRect = splitLockup.getBoundingClientRect();
@@ -824,23 +826,23 @@
                 splashIcon2.classList.add('coloring');
                 overlay.classList.add('transparent-bg');
                 document.body.classList.add('page-ready');
-            }, 2260));
+            }, 2520));
 
-            // 階段 5 (3.06s)：升到頂部定位！深色背景與完整 Logo 出現，同時背後往左滑出「Jar」結合成「YourStoryJar」
+            // 階段 5 (3.32s)：升到頂部定位！深色背景與完整 Logo 出現，同時背後往左滑出「Jar」結合成「YourStoryJar」
             timeouts.push(setTimeout(() => {
                 splashIcon2.classList.add('logo-complete');
                 splashText.style.transform = 'translateX(0px)';
                 splashIcon2.style.transform = 'translateX(0px)';
                 splashJarText.style.opacity = '1';
                 splashJarText.style.transform = 'translateX(0px) scale(1)';
-            }, 3060));
+            }, 3320));
 
-            // 階段 6 (3.85s)：完全貼合固定，解除捲動鎖定
+            // 階段 6 (4.10s)：完全貼合固定，解除捲動鎖定
             timeouts.push(setTimeout(() => {
                 targetLockup.classList.add('docked');
                 overlay.classList.add('hidden');
                 document.body.classList.remove('animating');
-            }, 3850));
+            }, 4100));
         }
 
         window.addEventListener('DOMContentLoaded', playIntroAnimation);
